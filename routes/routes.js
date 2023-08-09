@@ -61,7 +61,6 @@ app.post('/deleteComment/:postID/:commentID', commentController.deleteComment);/
 
 app.get('/userlist', adminController.getUserList);
 app.get('/logrecords', adminController.getLogRecords); 
-app.post('/saveLogs', adminController.saveLogRecords);
 
 app.get('/search', searchController.getSearch);
 app.get('/getResults', searchController.getResults);
