@@ -8,7 +8,9 @@ const session = require('express-session');
 const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo');
 const fs = require('fs');
-
+const https = require('https');
+const http = require('http');
+const path = require('path');
 const app = express();
 
 dotenv.config();
@@ -70,8 +72,12 @@ app.use(function(req, res) {
     res.render('error', details);
 });
 
-// binds the server to a specific port
-app.listen(port, function () {
-    console.log('app listening at port ' + port);
-    console.log('http://'+hostname+":"+port);
-});
+const sslServer = https.createServer(
+  {
+    key: fs.readFileSync(path.join(__dirname, 'cert', 'key.pem')),
+    cert: fs.readFileSync(path.join(__dirname, 'cert', 'cert.pem')),
+  },
+  app
+)
+
+sslServer.listen(3000, () =>   console.log('https://' + hostname + ':' + port))
