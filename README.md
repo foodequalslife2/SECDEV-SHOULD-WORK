@@ -21,8 +21,8 @@ git clone https://github.com/DLSU-CCAPDEV/2021T2-G42
 npm install
 ```
 3. Afterwards, import the database.sql file located in the root folder in MySQL Workbench to import the example database.
-```
-4. Run the server with:
+4. Change the conns.js in /models/ to your local database connection.
+5. Run the server with:
 ```
 node app.js
 ```
