@@ -32,10 +32,6 @@ const postController = {
 			feedname: feedname
 		}
 
-		// console.log(sessionname); 
-		// console.log(feedname); 
-		// console.log("_______")
-
 		var query = 'SELECT * from `user` WHERE username = "' + feedname + '";';
 
 		db.query(query).then((result) => {
@@ -237,9 +233,7 @@ const postController = {
 		});
 	},
 
-	// DONE
-	// Post soft delete -- sets isDeleted to true instead of actually deleting the post 
-    // there's probably a better way to do this but this is what I have right now 
+
 	deletePost: function (req, res) {
 		var postID = req.params.postID;
 		var username = req.session.username;

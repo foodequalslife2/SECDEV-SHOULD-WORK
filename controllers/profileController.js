@@ -8,6 +8,7 @@ const util = require('util');
 const clone = require('clone');
 const saltRounds = 10;
 const Logger = require('../controllers/logController.js');
+const { isBigUint64Array } = require('util/types');
 
 const profileController = {
     getProfile: function (req, res) {
@@ -25,7 +26,7 @@ const profileController = {
               username: result[0].username,
               phone: result[0].phone,
               followers: result[0].followers,
-              isDeleted: result[0].isDeleted
+              isDeleted: result[0].isDeleted,
           };
 
           req.session.referral = '/profile/'+details.sessionname;
@@ -317,9 +318,6 @@ const profileController = {
       console.log(username);
       console.log(userID);
 
-      // DONE
-      // User soft delete -- sets isDeleted to true instead of actually deleting the user 
-      // there's probably a better way to do this but this is what I have right now 
 
       // var query = 'SELECT username, isDeleted from `user` WHERE username = "' + username + '";';
 

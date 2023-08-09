@@ -1,0 +1,87 @@
+@font-face {
+	font-family: BebasN;
+	src: url('fonts/BebasNeue-Regular.ttf');
+}
+
+@font-face {
+	font-family: BebasN;
+	src: url('fonts/BebasNeue-Bold.ttf');
+	font-weight: bold;
+}
+
+input[type=submit] {
+	font-family: BebasN;
+	font-size: 20px;
+    margin-top: 3%;
+	margin-left: 0;
+	color: white;
+	width: 300px;
+	background-color: rgb(70,79,65);
+	border: none;
+	border-color: rgb(86,119,108);
+	padding: 10px 30px;
+	border-radius: 10px;
+	cursor: pointer;
+	outline: none;
+	margin-bottom: 3%;
+}
+
+input[type=submit]:hover {
+	background-color: rgb(91,138,114);
+}
+
+.header {
+	font-family: BebasN;
+	font-weight: bold;
+	font-size: 30px;
+	float: left; 
+	margin-left: 2%;
+} 
+
+.item {
+	font-family: BebasN;
+	font-size: 25px;
+	float: left; 
+	margin-left: 2%; 
+} 
+
+#first_item_log {
+	width: 5%;
+	clear: left;
+}
+
+#first_header_log {
+	width: 5%;
+}
+
+#operation_log {
+	width: 10%;
+}
+
+#username_log {
+	width: 12%; 
+}
+
+#first_header {
+	width: 10%;
+}
+
+#first_item {
+	width: 10%;
+	clear: left;
+}
+
+#email { 
+	width: 20%; 
+}
+
+#fname { 
+	width: 10%;  
+}
+
+#lname { 
+	width: 10%; 
+}
+
+
+

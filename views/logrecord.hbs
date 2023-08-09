@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title> Admin's Log Record </title>
+	<link rel = "icon" href = "../images/favicon.ico" type = "image/x-icon"/>
+	<link rel = "stylesheet" href = "../css/page.css">
+	<link rel = "stylesheet" href = "../css/nav-bar.css">
+	<link rel = "stylesheet" href = "../css/profile.css">
+    <link rel=  "stylesheet" href=  "../css/admin.css">
+</head>
+<body>
+	<div class = "nav-bar"> 
+        <form method="get" action="/back">
+			<input type="submit" value="Back to Profile" onclick="hideSpans()" class ="admin-back">
+		</form>
+	</div>
+
+    <p class ="header" id ="first_header_log"> Log ID </p>
+    <p class ="header" id ="operation_log"> Operation </p>
+    <p class ="header" id ="username_log" > Username </p>
+    <p class ="header" id ="operationdate_log"> Operation Date </p>
+
+    {{#each .}}
+        <p class ="item" id ="first_item_log"> {{logID}} </p>
+        <p class ="item" id ="operation_log"> {{operation}}</p>
+        <p class ="item" id ="username_log"> {{username}}</p>
+        <p class ="item" id ="operationdate_log"> {{operationDate}}</p>
+    {{/each}}
+
+    <script>
+		function hideSpans() {
+			document.getElementById('same_Username').style.display = 'none';
+			document.getElementById('wrong_Phonenumber').style.display = 'none';
+		}
+		
+		document.addEventListener('DOMContentLoaded', function() {
+			// Check query parameters in the URL
+			const params = new URLSearchParams(window.location.search);
+			if (params.get('usernameExist') === 'true') {
+				// Show the username exist span message
+				document.getElementById('same_Username').style.display = 'block';
+			}
+			if (params.get('invalidPhoneNumber') === 'true') {
+				// Show the invalid phone number span message
+				document.getElementById('wrong_Phonenumber').style.display = 'block';
+			}
+			if (params.get('wrongPassword') === 'true') {
+				// Show the username exist span message
+				document.getElementById('invalid_password').style.display = 'block';
+			}
+		});
+	</script>
+</body>
+</html>
+

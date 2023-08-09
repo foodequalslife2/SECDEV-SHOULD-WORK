@@ -88,9 +88,6 @@ const commentController = {
 		});
 	},
 
-	// DONE
-	// Comment soft delete -- sets isDeleted to true instead of actually deleting the comment 
-    // there's probably a better way to do this but this is what I have right now 
 	deleteComment: function (req, res) {
 		var postID = req.params.postID;
 		var username = req.session.username;

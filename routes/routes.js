@@ -57,7 +57,10 @@ app.get('/comment/:postID', commentController.getComment);//////////////////////
 app.get('/getPost', commentController.getPost);
 app.get('/getPostComments', commentController.getPostComments);
 app.post('/postComment', commentController.postComment);
-app.post('/deleteComment/:postID/:commentID', commentController.deleteComment);///////
+app.post('/deleteComment/:postID/:commentID', commentController.deleteComment);//////
+
+app.get('/userlist', adminController.getUserList);
+app.get('/logrecords', adminController.getLogRecords); 
 
 app.get('/search', searchController.getSearch);
 app.get('/getResults', searchController.getResults);
