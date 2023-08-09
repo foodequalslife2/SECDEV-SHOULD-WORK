@@ -23,7 +23,7 @@ const postController = {
 			res.render('feed', details);
 		}
 		catch(error) {
-            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+            if(req.session.username == 'admin') { var msg = {error: error.stack }; }
             else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
             res.render('error', msg);
         }
@@ -59,7 +59,7 @@ const postController = {
 				}
 			})
 			.catch((error) => {
-				if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+				if(req.session.username == 'admin') { var msg = {error: error.stack }; }
 				else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
 				res.render('error', msg);
 			});
@@ -73,7 +73,7 @@ const postController = {
 			res.send(result);
 		})
 		.catch((error) => {
-            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+            if(req.session.username == 'admin') { var msg = {error: error.stack }; }
             else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
             res.render('error', msg);
         });
@@ -163,13 +163,13 @@ const postController = {
 				
 				})
 				.catch((error) => {
-					if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+					if(req.session.username == 'admin') { var msg = {error: error.stack }; }
 					else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
 					res.render('error', msg);
 				});
 
         } catch (error) {
-            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+            if(req.session.username == 'admin') { var msg = {error: error.stack }; }
             else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
             res.render('error', msg);
         }
@@ -185,7 +185,7 @@ const postController = {
 			res.send(result);
 		})
 		.catch((error) => {
-            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+            if(req.session.username == 'admin') { var msg = {error: error.stack }; }
             else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
             res.render('error', msg);
         });
@@ -210,14 +210,14 @@ const postController = {
 
 				res.render('makePost', details);
 			} else {
-				if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+				if(req.session.username == 'admin') { var msg = {error: error.stack }; }
 				else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
 				res.render('error', msg);
 			}
 
 		})
 		.catch((error) => {
-            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+            if(req.session.username == 'admin') { var msg = {error: error.stack }; }
             else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
             res.render('error', msg);
         });
@@ -300,13 +300,13 @@ const postController = {
 				res.send(true);
 			}
 			else {
-				if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+				if(req.session.username == 'admin') { var msg = {error: error.stack }; }
 				else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
 				res.render('error', msg);
 			}
 		})
 		.catch((error) => {
-            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+            if(req.session.username == 'admin') { var msg = {error: error.stack }; }
             else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
             res.render('error', msg);
         });

@@ -5,11 +5,18 @@ const Comments = require('../models/CommentModel.js');
 
 const tunerController = {
 	getTuner: function (req,res) {
-		var username = req.session.username;
+		try {
+			var username = req.session.username;
 
-		req.session.referral = '/tuner';
-		
-		res.render('tuner', {username});
+			req.session.referral = '/tuner';
+			
+			res.render('tuner', {username});
+		}
+		catch(error) {
+            if(req.session.username == 'admin') { var msg = {error: error.stack }; }
+            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+            res.render('error', msg);
+        }
 	}
 }
 

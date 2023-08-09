@@ -20,7 +20,7 @@ const controller = {
             }
         }
     	catch(error){
-            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+            if(req.session.username == 'admin') { var msg = {error: error.stack }; }
             else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
             res.render('error', msg);
         }
