@@ -36,6 +36,11 @@ var PostSchema = new mongoose.Schema({
 		required: true
 	},
 
+	isDeleted: {
+        type: Boolean,
+        required: true
+    },
+
 	likes: [Number],
 
 	tags: [String]

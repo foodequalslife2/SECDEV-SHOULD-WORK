@@ -100,7 +100,44 @@ input[type=submit]:hover {
 	text-align: center;
 }
 
-
 #invalid_password{
 	text-align: center;
+}
+
+.userList
+{
+	color: white;
+	font-family: BebasN;
+	font-size: 30px;
+	position: absolute;
+	top: 520px;
+	left: 37%;
+	background-color: rgb(43, 161, 116);
+	padding: 14px 16px;
+	border: none;
+	cursor: pointer;
+	border-radius: 17px;
+}
+
+.userList:hover {
+	background-color: rgb(109, 155, 131);
+}
+
+.logRecords
+{
+	color: white;
+	font-family: BebasN;
+	font-size: 30px;
+	position: absolute;
+	top: 520px;
+	left: 55%;
+	background-color: rgb(43, 161, 116);
+	padding: 14px 16px;
+	border: none;
+	cursor: pointer;
+	border-radius: 17px;
+}
+
+.logRecords:hover {
+	background-color: rgb(109, 155, 131);
 }

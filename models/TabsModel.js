@@ -1,4 +1,4 @@
- const mongoose = require('mongoose')
+const mongoose = require('mongoose')
 
 var TabsSchema = new mongoose.Schema({
 	tabsID: {

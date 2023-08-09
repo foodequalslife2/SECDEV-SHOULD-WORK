@@ -46,6 +46,11 @@ var UserSchema = new mongoose.Schema({
         required: true
     },
 
+    isDeleted: {
+        type: Boolean,
+        required: true
+    },
+
     followers: [Number],
 
     liked: [String]

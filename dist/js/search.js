@@ -165,7 +165,7 @@ function createResults(results, type) {
 			$(userLink).text(results[x].username);
 			$(userFullname).text(results[x].firstName+" "+results[x].lastName);
 			$(userPosts).text("Posts: "+results[x].numPosts);
-			$(userFollowers).text("Followers: "+results[x].followers.length);
+			$(userFollowers).text("Followers: "+results[x].followers);
 
 			$(feed).append(userContainer);
 			$(userContainer).append(userAvatar);

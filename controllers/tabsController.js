@@ -1,4 +1,4 @@
-const db = require('../models/db.js');
+const db = require('../models/mysqldb.js');
 const Users = require('../models/UserModel.js');
 const Posts = require('../models/PostModel.js');
 const Comments = require('../models/CommentModel.js');
@@ -23,14 +23,11 @@ const tabsController = {
 	},
 
 	getTabsFeed: function (req, res) {
-		var username = req.session.username;
+		var query = 'SELECT * from `tab`'
 
-		var projection =  'tabsID tabsName tabsInstrument URL';
-
-		db.findMany(Tabs, {}, projection, function (results) {
-			if (results != null) {
-				console.log(results);
-				res.send(results);
+		db.query(query).then((result) => {
+			if (result != null) {
+				res.send(result);
 			}
 		});
 	}

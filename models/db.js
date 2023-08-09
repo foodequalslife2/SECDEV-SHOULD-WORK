@@ -6,6 +6,8 @@ const Posts = require('./PostModel.js');
 const Comments = require('./CommentModel.js');
 const Tabs = require('./TabsModel.js');
 const client = mongodb.MongoClient;
+const mysql = require('mysql2/promise')
+const config = require('../models/conns')
 
 dotenv.config();
 const url = process.env.MONGODB_URI;
