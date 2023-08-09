@@ -1,4 +1,4 @@
-const db = require('../models/db.js');
+const db = require('../models/mysqldb.js');
 const Users = require('../models/UserModel.js');
 const Posts = require('../models/PostModel.js');
 const Comments = require('../models/CommentModel.js');
@@ -28,32 +28,36 @@ const searchController = {
 
 		// Search Posts
 		if (type == 'post') {
-			var projection = 'postID posterID username type contentPath description likes tags'
-			db.findMany(Posts, {description: {"$regex": searchQuery, "$options": "i"}}, projection, function (results) {
+			var query = 'SELECT * from `post` WHERE description = "' + searchQuery + '" OR username = "' + searchQuery + '" AND isDeleted = 0;';
+
+			db.query(query).then((results) => {
 				res.send(results);
 			});
 		}
 
 		// Search Users
 		if (type == 'user') {
-			var projection = 'userID username password email firstName lastName numPosts avatar followers liked';
-			db.findMany(Users, {username: {"$regex": searchQuery, "$options": "i"}}, projection, function (results) {
+			var query = 'SELECT * from `user` WHERE username = "' + searchQuery + '" AND isDeleted = 0;';
+
+			db.query(query).then((results) => {
 				res.send(results);
 			});
 		}
 
 		// Search Comments
 		if (type == 'comment') {
-			var projection = 'commentID commenterID commentNum postID username content';
-			db.findMany(Comments, {content: {"$regex": searchQuery, "$options": "i"}}, projection, function (results) {
+			var query = 'SELECT * from `comment` WHERE username = "' + searchQuery + '" OR content = "' + searchQuery + '" AND isDeleted = 0;';
+
+			db.query(query).then((results) => {
 				res.send(results);
 			});
 		}
 
 		// Search Tabs
 		if (type == 'tabs') {
-			var projection =  'tabsID tabsName tabsInstrument URL';
-			db.findMany(Tabs, {tabsName: {"$regex": searchQuery, "$options": "i"}}, projection, function (results) {
+			var query = 'SELECT * from `tab` WHERE tabsName = "' + searchQuery + '" OR tabsInstrument = "' + searchQuery + '";';
+
+			db.query(query).then((results) => {
 				res.send(results);
 			});
 		}

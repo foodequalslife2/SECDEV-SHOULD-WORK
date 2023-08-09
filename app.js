@@ -48,6 +48,8 @@ app.use(session({
 	resave: false,
 	saveUninitialized: false,
 	secret: secret,
+  cookie: { maxAge: 300000 },
+  rolling: false,
 	store: MongoStore.create({
 		mongoUrl: uri
 	})

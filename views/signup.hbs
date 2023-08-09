@@ -13,7 +13,10 @@
         <img class = "header-img" src="images/logo.png">
     </div>
     <div class = "reg-block">
-        <form class="signup" method="post" action="/postSignUp">
+        <form class="signup" enctype="multipart/form-data" method="post" action="/postSignUp">
+
+            <p class = "reg-text"> Profile Picture </p>
+            <input type = "file" id = "file" class = "file" name = "file" required><br><br>
             <p class = "reg-text"> Email </p>
             <input type="text" name="email" class="email" id="email" placeholder="Email" required> <br>
             <p class = "reg-text"> First Name </p>
@@ -24,18 +27,22 @@
             <input type="text" name="username" class="username" id="username" placeholder="Username" required> <br>
             <p class = "reg-text"> Password </p>
             <input type="password" name="password" class="password" id="password" placeholder="Password" required> <br>
-            <p class = "reg-text"> Phonenumber </p>
+            <p class = "reg-text"> Confirm Password </p>
+            <input type="password" name="confirm_password" class="password" id="confirm_password" placeholder="Password" required> <br>
+            <p class = "reg-text"> Phone number </p>
             <input type="reg-text"  name="phone" class="phone" id="phone" placeholder="Phone Number" required> <br>
             <div class = "divider"></div>
 
           
             <span style="display: none; color: red;" id="invalid_password">Password must be at least +8 characters and least one number and special character</span>
             <br>
+            <span style="display: none; color: red;" id="invalid_confirm_password">Passwords must match</span>
+            <br>
             <span style="display: none; color: red;" id="same_Username">Username Already Exist</span>
             <br>
             <span style="display: none; color: red;" id="wrong_email">Invalid Email</span>
               <br>
-            <span style="display: none; color: red;" id="wrong_Phonenumber">Invalid Phonenumber</span>
+            <span style="display: none; color: red;" id="wrong_Phonenumber">Invalid Phone number</span>
 
             <input type="submit" class="submit" id="submit" value="Sign Up">
             <p class="return"><a href = "/login">Already have an account?</a></p>

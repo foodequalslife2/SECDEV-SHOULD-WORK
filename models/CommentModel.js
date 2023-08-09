@@ -29,7 +29,12 @@ var CommentSchema = new mongoose.Schema({
 	content: {
 		type: String,
 		required: true
-	}
+	}, 
+
+	isDeleted: {
+        type: Boolean,
+        required: true
+    }
 });
 
 var comment = mongoose.model('Comment', CommentSchema);

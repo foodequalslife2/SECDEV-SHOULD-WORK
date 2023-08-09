@@ -24,8 +24,7 @@ $(document).ready(function () {
     {
         var password = $("#password").val();
         var passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
-
-        
+        console.log(password);
 
         if (passwordRegex.test(password)) {
             $.get('/getCheckPassword', {password: password}, function(result) {
@@ -47,6 +46,48 @@ $(document).ready(function () {
             $('#invalid_password').css("display", "block");
             $("#submit").prop("disabled", true);
             flag2=0;
+        }
+
+        var confirm_password = $("#confirm_password").val();
+
+        if (confirm_password && confirm_password.value) {
+            if (password != confirm_password) {
+                $("#confirm_password").css("background-color", "red");
+                $('#invalid_confirm_password').css("display", "block");
+                $("#submit").prop("disabled", true);
+                flag2=0;
+            }
+            else {
+                $("#confirm_password").css("background-color", "white");
+                $('#invalid_confirm_password').css("display", "none");
+                flag2 = 1;
+                enableSubmitButton();
+            }
+        }
+        else {
+            $("#confirm_password").css("background-color", "red");
+            $('#invalid_confirm_password').css("display", "block");
+            $("#submit").prop("disabled", true);
+            flag2=0;
+        }
+    });
+
+    $("#confirm_password").keyup(function() 
+    {
+        var password = $("#password").val();
+        var confirm_password = $("#confirm_password").val();
+
+        if (password != confirm_password) {
+            $("#confirm_password").css("background-color", "red");
+            $('#invalid_confirm_password').css("display", "block");
+            $("#submit").prop("disabled", true);
+            flag2=0;
+        }
+        else {
+            $("#confirm_password").css("background-color", "white");
+            $('#invalid_confirm_password').css("display", "none");
+            flag2 = 1;
+            enableSubmitButton();
         }
     });
 
@@ -71,9 +112,8 @@ $(document).ready(function () {
 
     $('#phone').keyup(function () {
         var phone = $('#phone').val();
-        var PhoneRegex = /^\+?[0-9]{1,3}-?[0-9]{1,14}$/
+        var PhoneRegex = /((^(\+)(\d){12}$)|(^\d{11}$))/
 
-     
         if(PhoneRegex.test(phone)) {
             $('#phone').css('background-color', '#E3E3E3');
             $('#wrong_Phonenumber').css("display", "none");
@@ -88,6 +128,29 @@ $(document).ready(function () {
         }
     });
 
+    $('#file').on("change", function () {
+        fileValidation();
+    })
+
+    function fileValidation(){
+        var fileInput = document.getElementById('file');
+        var filePath = fileInput.value;
+        var allowedExtensions = /(\.jpg|\.jpeg|\.png)$/i;
+        if(!allowedExtensions.exec(filePath)){
+            alert('Please upload file having extensions .jpeg/.jpg/.png only.');
+            fileInput.value = '';
+            return false;
+        }else{
+            //Image preview
+            if (fileInput.files && fileInput.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').innerHTML = '<img src="'+e.target.result+'"/>';
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        }
+    }
 
     function enableSubmitButton() {
         if (flag1 === 1 && flag2 === 1 && flag3 ===1 && flag4 ===1 ) {

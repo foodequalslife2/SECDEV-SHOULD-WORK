@@ -1,10 +1,11 @@
-const db = require('../models/db.js');
+const db = require('../models/mysqldb.js');
 const Users = require('../models/UserModel.js');
 const Posts = require('../models/PostModel.js');
 const Comments = require('../models/CommentModel.js');
 const path = require('path');
 const util = require('util');
 const clone = require('clone');
+const Logger = require('../controllers/logController.js');
 
 const postController = {
 	getFeed: function (req,res) {
@@ -21,6 +22,7 @@ const postController = {
 		res.render('feed', details);
 	},
 
+	// THIS ONE DOESN'T WORK but it's not broken either 
 	getViewUserPosts: function (req, res) {
 		var sessionname = req.session.username;
 		var feedname = req.params.username;
@@ -30,16 +32,31 @@ const postController = {
 			feedname: feedname
 		}
 
-		req.session.referral = '/viewposts/'+feedname;
+		// console.log(sessionname); 
+		// console.log(feedname); 
+		// console.log("_______")
 
-		res.render('viewposts', details);
+		var query = 'SELECT * from `user` WHERE username = "' + feedname + '";';
+
+		db.query(query).then((result) => {
+			if (result != null) {
+				req.session.referral = '/viewposts/'+feedname;
+
+				res.render('viewposts', details);
+			}
+			else{
+				// var error = 'Cannot find profile';
+                // res.render('error', error);
+                res.render('error');
+			}
+		});
 	},
 
 	getNormalPosts: function (req, res) {
-		var projection = 'postID posterID userPostNum username type contentPath description likes tags'
-
-		db.findMany(Posts, {}, projection, function (results) {
-			res.send(results);
+		var query = 'SELECT * from `post`'
+		
+		db.query(query).then((result) => {
+			res.send(result);
 		});
 	},
 
@@ -99,8 +116,9 @@ const postController = {
 				type: type,
 				contentPath: contentPath,
 				description: description,
-				likes: [],
-				tags: tagsArray
+				likes: 0,
+				tags: tagsArray,
+				isDeleted: false
 			}
 
 			console.log('postID: '+postID);
@@ -112,28 +130,15 @@ const postController = {
 			console.log('description: '+description);
 			console.log('tags: '+tagsArray);
 
-			db.insertOne(Posts, post, function (result) {
+			var query = "INSERT INTO `post` (postID, posterID, username, type, contentPath, description, likes, isDeleted) values ('" + post.postID + "', '" + post.posterID + "', '" + post.username + "', '" + post.type + "', '" + post.contentPath + "', '" + post.description + "', '" + post.likes + "', '" + "0" + "');";
+
+			Logger.logAction('Posted ' + post.postID , post.username);
+
+			db.query(query).then((result) => {
 				if (result) {
 					console.log('Post successfully added: '+result);
 
-					var oldPostNum = clone(userPostNum);
-					oldPostNum--;
-
-					var oldUser = {
-						username: username,
-						numPosts: oldPostNum
-					}
-
-					var newUser = {
-						username: username,
-						numPosts: userPostNum
-					}
-					db.updateOne(Users, oldUser, newUser, function (result) {
-						if (result) {
-							console.log('Profile Updated');
-							res.redirect('/comment/'+post.postID);
-						}	
-					});
+					res.redirect('/comment/'+post.postID);
 				}
 			});
 
@@ -146,13 +151,12 @@ const postController = {
     },
 
 	getUserPosts: function (req, res) {
-		var query = {
-			username: req.query.feedname
-		}
-		var projection = 'postID posterID userPostNum username type contentPath description likes tags'
+		var	username = req.query.feedname;
 
-		db.findMany(Posts, query, projection, function (results) {
-			res.send(results);
+		var query = 'SELECT * from `post` WHERE username = "' + username + '";';
+
+		db.query(query).then((result) => {
+			res.send(result);
 		});
 	},
 
@@ -160,20 +164,14 @@ const postController = {
 		var sessionname = req.session.username;
 		var feedname = req.params.username;
 
-		var query = {
-			username: sessionname
-		}
+		var query = 'SELECT * from `user` WHERE username = "' + sessionname + '";';
 
-		var projection = 'userID numPosts';
-
-		db.findOne(Users, query, projection, function (result) {
+		db.query(query).then((result) => {
 			if (result != null) {
-
 				details = {
-					userID: result.userID,
+					userID: result[0].userID,
 					sessionname: sessionname,
 					feedname: feedname,
-					numPosts: result.numPosts
 				}
 
 				req.session.referral = '/makePost';
@@ -239,48 +237,62 @@ const postController = {
 		});
 	},
 
+	// DONE
+	// Post soft delete -- sets isDeleted to true instead of actually deleting the post 
+    // there's probably a better way to do this but this is what I have right now 
 	deletePost: function (req, res) {
 		var postID = req.params.postID;
+		var username = req.session.username;
 		var query = {
 			postID: postID
 		}
 		console.log(postID);
 
-		db.deleteOne(Posts, query, function (result) {
-			if (result) {
-				db.deleteMany(Comments, query, function (result) {
-					var query = {
-						username: req.session.username
-					}
+		var query = 'DELETE from `post` WHERE postID = ' + postID + ';';
 
-					var projection = 'username numPosts';
+		Logger.logAction('Deleted post ' + postID, username);
 
-					db.findOne(Users, query, projection, function (result) {
-						if (result != null) {
-							var oldPostNum = result.numPosts;
-							var newPostNum = clone(oldPostNum);
-
-							var oldInfo = {
-								username: req.session.username,
-								numPosts: oldPostNum
-							}
-
-							newPostNum--;
-
-							var newInfo = {
-								username: req.session.username,
-								numPosts: newPostNum
-							}
-
-							db.updateOne(Users, oldInfo, newInfo, function (result) {
-								if (result)
-									res.send(true);
-							});
-						}
-					});
-				});
+		db.query(query).then((result) => {
+			if (result != null) {
+				res.send(true);
 			}
 		});
+
+		// db.deleteOne(Posts, query, function (result) {
+		// 	if (result) {
+		// 		db.deleteMany(Comments, query, function (result) {
+		// 			var query = {
+		// 				username: req.session.username
+		// 			}
+
+		// 			var projection = 'username numPosts';
+
+		// 			db.findOne(Users, query, projection, function (result) {
+		// 				if (result != null) {
+		// 					var oldPostNum = result.numPosts;
+		// 					var newPostNum = clone(oldPostNum);
+
+		// 					var oldInfo = {
+		// 						username: req.session.username,
+		// 						numPosts: oldPostNum
+		// 					}
+
+		// 					newPostNum--;
+
+		// 					var newInfo = {
+		// 						username: req.session.username,
+		// 						numPosts: newPostNum
+		// 					}
+
+		// 					db.updateOne(Users, oldInfo, newInfo, function (result) {
+		// 						if (result)
+		// 							res.send(true);
+		// 					});
+		// 				}
+		// 			});
+		// 		});
+		// 	}
+		// });
 	}
 }
 

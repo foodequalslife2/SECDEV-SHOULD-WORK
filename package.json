@@ -25,8 +25,10 @@
     "express-session": "^1.17.1",
     "express-validator": "^6.11.1",
     "hbs": "^4.1.2",
-    "mongodb": "^3.6.6",
-    "mongoose": "^5.12.5"
+    "mongodb": "^3.7.4",
+    "mongoose": "^5.12.5",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.6.0"
   },
   "bugs": {
     "url": "https://github.com/DLSU-CCAPDEV/2021T2-G42/issues"
@@ -34,7 +36,6 @@
   "engines": {
     "node": "14.x"
   },
-  "devDependencies": {},
   "keywords": [
     "Social",
     "Music",

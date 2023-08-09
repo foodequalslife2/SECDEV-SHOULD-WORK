@@ -1,4 +1,4 @@
-const db = require('../models/db.js');
+const db = require('../models/mysqldb.js');
 const Users = require('../models/UserModel.js');
 const Posts = require('../models/PostModel.js');
 const Comments = require('../models/CommentModel.js');
@@ -7,124 +7,120 @@ const path = require('path');
 const util = require('util');
 const clone = require('clone');
 const saltRounds = 10;
+const Logger = require('../controllers/logController.js');
 
 const profileController = {
     getProfile: function (req, res) {
-        var query = {
-            username: req.params.username,
-        };
+      var username = req.params.username;
+      var query = 'SELECT * from `user` WHERE username = "' + username + '";';
 
-        var projection = 'userID firstName lastName username numPosts followers phone';
+      db.query(query).then((result) => {
+        if(typeof result[0] !== 'undefined') {
+          var details = {
+              userID: result[0].userID,
+              sessionname: req.session.username,
+              sessionID: req.session.userID,
+              firstName: result[0].firstName,
+              lastName: result[0].lastName,
+              username: result[0].username,
+              phone: result[0].phone,
+              followers: result[0].followers,
+              isDeleted: result[0].isDeleted
+          };
 
-        db.findOne(Users, query, projection, function(result) {
-            if(result != null) {
-                var details = {
-                    userID: result.userID,
-                    sessionname: req.session.username,
-                    sessionID: req.session.userID,
-                    firstName: result.firstName,
-                    lastName: result.lastName,
-                    username: result.username,
-                    numPosts: result.numPosts,
-                    phone: result.phone,
-                    followers: result.followers
-                };
+          req.session.referral = '/profile/'+details.sessionname;
 
-                req.session.referral = '/profile/'+details.sessionname;
-
-                console.log(req.session.referral);
-                
-                res.render('profile', details);
-            }
-            else {
-                var error = 'Cannot find profile';
-                res.render('error', error);
-            }
-        });
+          console.log(req.session.referral);
+          
+          res.render('profile', details);
+        }
+        else {
+            var error = 'Cannot find profile';
+            res.render('error', {error});
+        }
+      });
     },
 
     getProfileAvatar: function (req, res) {
-        var query = {
-            username: req.params.username
-        }
+      var username = req.params.username;
 
-        var projection = 'username avatar';
-        db.findOne(Users, query, projection, function (result) {
-            res.send(result);
-        });
+      var query = 'SELECT username, avatar from `user` WHERE username = "' + username + '";';
+      
+      db.query(query).then((result) => { 
+        res.send(result[0]);
+      });
     },
 
     getProfilePosts: function (req, res) {
         var username = req.params.username;
-        
-        var projection = 'postID posterID userPostNum username contentPath description likes comments tags';
-        
-        db.findMany(Posts, {username, username}, projection, function (results) {
-            res.render('profile', {results})
+
+        var query = 'SELECT * from `post` WHERE username = "' + username + '";';
+
+        db.query(query).then((result) => {
+          var trim = result[0];
+          res.render('profile', {trim})
         });
     },
 
     getUploadPage: function (req, res) {
-        var query = {
-            username: req.session.username
+      var username = req.session.username;
+
+      var query = 'SELECT username, avatar from `user` WHERE username = "' + username + '";';
+      
+      db.query(query).then((result) => { 
+        if (result != null) {
+          var details = {
+              username: result[0].username,
+              avatar: result[0].avatar
+          };
+
+          req.session.referral = '/uploadPage/'+query.username;
+
+          res.render('uploadPage', details)
         }
-
-        var projection = 'username avatar';
-
-        db.findOne(Users, query, projection, function (result) {
-            if (result != null) {
-                var details = {
-                    username: result.username,
-                    avatar: result.avatar
-                };
-
-                req.session.referral = '/uploadPage/'+query.username;
-
-                res.render('uploadPage', details)
-            }
-            else {
-                var error = 'Cannot find profile';
-                res.render('error', {error});
-            }
-        });
+        else {
+            // var error = 'Cannot find profile';
+            // res.render('error', {error});
+            res.render('error'); 
+        }
+      });
     },
 
     upload: async function (req, res) {
         try {
-            var hiddenInfo = {
-                username: req.body.hiddenUsername,
-                avatar: req.body.avatarPath
+          var username = req.session.username;
+
+          const file = req.files.file;
+          const fileName = file.name;
+          const size = file.data.length;
+          const extension = path.extname(fileName);
+          const toBeDeleted = req.body.avatarPath;
+
+          const allowedExtensions = /png|jpeg|jpg/;
+
+          if (!allowedExtensions.test(extension)) throw "Unsupported extension";
+          if (size > 12000000) throw "File must be less than 12MB";
+
+          const md5 = file.md5;
+
+          const URL = "/images/avatar/"+username+extension;
+
+          var avatarPath = ".."+URL
+
+          await util.promisify(file.mv)("./dist"+URL);
+
+          var query = 'UPDATE `user` SET avatar = "' + avatarPath + '" WHERE username = "' + username + '";';
+
+          db.query(query).then((result) => {
+            if (result != null) {
+              var username = req.session.username;
+              
+              Logger.logAction("User changed avatar photo at path " + avatarPath, username);
+
+              res.redirect('/profile/'+username);
             }
-
-            const file = req.files.file;
-            const fileName = file.name;
-            const size = file.data.length;
-            const extension = path.extname(fileName);
-            const toBeDeleted = req.body.avatarPath;
-
-            const allowedExtensions = /png|jpeg|jpg/;
-
-            if (!allowedExtensions.test(extension)) throw "Unsupported extension";
-            if (size > 12000000) throw "File must be less than 12MB";
-
-            const md5 = file.md5;
-
-            const URL = "/images/avatar/"+hiddenInfo.username+extension;
-
-            var newInfo = {
-                username: req.body.hiddenUsername,
-                avatar: ".."+URL
-            }
-
-            await util.promisify(file.mv)("./dist"+URL);
-
-            db.updateOne(Users, hiddenInfo, newInfo, function (result) {
-                if (result != null) {
-                    var username = newInfo.username;
-                    res.redirect('/profile/'+username);
-                }
-            });
-
+          });
+          
         } catch (err) {
             console.log(err);
             res.status(500).json({
@@ -134,30 +130,29 @@ const profileController = {
     },
 
     getEditProfile: function (req, res) {
-        var query = {
-            username: req.params.username
+      var username = req.params.username;
+
+      var query = 'SELECT username, avatar from `user` WHERE username = "' + username + '";';
+
+      db.query(query).then((result) => {
+        if (result != null) {
+          var details = {
+              firstName: result[0].firstName,
+              lastName: result[0].lastName,
+              username: result[0].username,
+              phone: result[0].phone
+          };
+
+          req.session.referral = '/editprofile/'+query.username;
+
+          res.render('editprofile', details)
         }
-
-        var projection = 'firstName lastName username phone';
-
-        db.findOne(Users, query, projection, function (result) {
-            if (result != null) {
-                var details = {
-                    firstName: result.firstName,
-                    lastName: result.lastName,
-                    username: result.username,
-                    phone: result.phone
-                };
-
-                req.session.referral = '/editprofile/'+query.username;
-
-                res.render('editprofile', details)
-            }
-            else {
-                var error = 'Cannot find profile';
-                res.render('error', error);
-            }
-        });
+        else {
+            // var error = 'Cannot find profile';
+            // res.render('error', error);
+            res.render('error'); 
+        }
+      });
     },
 
     postProfileInfo: function (req, res) {
@@ -183,8 +178,10 @@ const profileController = {
         console.log(hiddenInfo.username + " to " + newInfo.username);
       
         // Check if the username already exists
-        db.findOne(Users, { username: newname }, 'username', function (result) {
-          if (result && !(newname === hiddenInfo.username)) {
+        var query = 'SELECT username, avatar from `user` WHERE username = "' + newname + '";';
+        
+        db.query(query).then((result) => {
+          if (result[0] && !(newname === hiddenInfo.username)) {
             // Username already exists, set flag1 to 1
             flag1 = 1;
           }
@@ -207,134 +204,190 @@ const profileController = {
             res.redirect('/error?invalidPhoneNumber=true');
           } else {
             // Phone number is valid and username is unique, continue with the update
-            db.updateOne(Users, hiddenInfo, newInfo, function (result) {
+
+            var query = 'UPDATE `user` SET username = "' + newInfo.username + '", firstName = "' + newInfo.firstName + '", lastName = "' + newInfo.lastName + '", phone = ' + newInfo.phone + ' WHERE username = "' + hiddenInfo.username +'";';
+            
+
+            db.query(query).then((result) => {
               if (result != null) {
+                Logger.logAction('User updated profile information to ' + newInfo.username + ', ' + newInfo.firstName + ', ' + newInfo.lastName + ', ' + newInfo.phone, hiddenInfo.username);
+
                 var oldPostQ = {
                   username: hiddenInfo.username
                 }
                 var newPostQ = {
                   username: newname
                 }
-                db.updateMany(Comments, oldPostQ, newPostQ, function (results) {
-                  if (results) {
-                    db.updateMany(Posts, oldPostQ, newPostQ, function (results) {
-                      if (results) {
-                        res.redirect('/profile/' + newname);
-                      }
-                    });
-                  }
+
+                var query = 'UPDATE `comment` SET username = "' + newPostQ.username + '" WHERE username = "' + oldPostQ.username + '";';
+                
+                db.query(query).then((result) => {
+                  var query = 'UPDATE `post` SET username = "' + newPostQ.username + '" WHERE username = "' + oldPostQ.username + '";';
+
+                  db.query(query).then((result) => {
+                    res.redirect('/profile/' + newname);
+                  })
                 });
               }
             });
           }
         });
-      },
-
+    },
 
     getChangePassword: function (req, res) {
-        var query = {
-            username: req.params.username
-        }
+        var username = req.session.username;
 
-        var projection = 'username password';
+        var query = 'SELECT username, password from `user` WHERE username = "' + username + '";';
 
-        db.findOne(Users, query, projection, function (result) {
-            if (result != null) {
-                var details = {
-                    username: result.username,
-                    password: result.password
-                };
+        db.query(query).then((result) => {
+          if (result != null) {
+            var details = {
+                username: result[0].username,
+                password: result[0].password
+            };
 
-                req.session.referral = '/changepassword/'+query.username;
+            req.session.referral = '/changepassword/'+query.username;
 
-                res.render('changepass', details);
-            }
-            else {
-                var error = 'Cannot find profile';
-                res.render('error', error);
-            }
-        })
+            res.render('changepass', details);
+          }
+          else {
+              // var error = 'Cannot find profile';
+              // res.render('error', error);
+              res.render('error'); 
+          }
+        });
     },
 
     postChangePassword: function (req, res) {
-        var curPassword = req.body.curPassword;
-        var username = req.body.hiddenUsername;
-      
-        var hiddenInfo = {
-          username: req.body.hiddenUsername,
-          password: req.body.hiddenPassword
-        }
-        var newInfo = {
-          username: req.body.hiddenUsername,
-          password: req.body.newPassword
-        }
-      
-        var projection = 'userID username password';
-      
-        db.findOne(Users, hiddenInfo, projection, function(result) {
-          if (result && result.username == username) {
-            bcrypt.compare(curPassword, result.password, function (err, equal) {
-              if (equal) {
-                var passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
-                if (!passwordRegex.test(newInfo.password)) {
-                
-                  res.redirect('error?wrongPassword=true');
-                } else {
-                  bcrypt.hash(newInfo.password, saltRounds, function (err, hash) {
-                    if (hash != null) {
-                      
-                      newInfo.password = hash;
-      
-                      db.updateOne(Users, hiddenInfo, newInfo, function (result) {
-                        if (result != null) {
-                          var username = newInfo.username;
-                          res.redirect('/profile/' + username);
-                        }
-                      });
-                    } else {
-                      var error = 'Something went wrong in storing password';
-                      res.render('error', error);
-                    }
-                  });
-                }
+      var curPassword = req.body.curPassword;
+      var username = req.body.hiddenUsername;
+    
+      var hiddenInfo = {
+        username: req.body.hiddenUsername,
+        password: req.body.hiddenPassword
+      }
+      var newInfo = {
+        username: req.body.hiddenUsername,
+        password: req.body.newPassword
+      }
+    
+      var query = 'SELECT userID, username, password from `user` WHERE username = "' + hiddenInfo.username + '" AND password = "' + hiddenInfo.password + '";';
+
+      db.query(query).then((result) => {
+        if (result && result[0].username == username) {
+          bcrypt.compare(curPassword, result[0].password, function (err, equal) {
+            if (equal) {
+              var passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+              if (!passwordRegex.test(newInfo.password)) {
+                res.redirect('error?wrongPassword=true');
               } else {
-                var error = 'Wrong password entered.';
-                res.render('error', error);
+                bcrypt.hash(newInfo.password, saltRounds, function (err, hash) {
+                  if (hash != null) {
+                    newInfo.password = hash;
+                    
+                    var query = 'UPDATE `user` SET password = "' + newInfo.password + '" WHERE username = "' + username + '";';
+
+                    db.query(query).then((result) => {
+                      if (result != null) {
+                        Logger.logAction('User updated password', newInfo.username);
+
+                        var username = newInfo.username;
+                        res.redirect('/profile/' + username);
+                      }
+                    });
+                  } else {
+                    var error = 'Something went wrong in storing password';
+                    res.render('error', error);
+                  }
+                });
               }
-            });
-          }
-        });
-      },
+            } else {
+              var error = 'Wrong password entered.';
+              res.render('error', error);
+            }
+          });
+        }
+      });
+    },
 
     deleteAccount: function (req, res) {
-        var username = req.params.username;
-        var userID = req.params.userID;
+      var username = req.params.username;
+      var userID = req.params.userID;
 
-        console.log(username);
-        console.log(userID);
+      console.log(username);
+      console.log(userID);
 
-        var query = {
-            userID: userID
-        }
+      // DONE
+      // User soft delete -- sets isDeleted to true instead of actually deleting the user 
+      // there's probably a better way to do this but this is what I have right now 
 
-        db.deleteOne(Users, query, function (result) {
-            if (result) {
+      // var query = 'SELECT username, isDeleted from `user` WHERE username = "' + username + '";';
 
-                query = {
-                    username: username
-                }
+      // db.query(query).then((result) => {
+      //  if (result != null) {
+      //    var oldInfo = {
+      //        username: username,
+      //        isDeleted: false   // not sure  
+      //    }
+      //    var newInfo = {
+      //        username: username,
+      //        isDeleted: true
+      //    }
 
-                db.deleteMany(Posts, query, function (result) {
-                    if (result) {
-                        db.deleteMany(Comments, query, function (result) {
-                            if (result) {
-                                res.send(true);
-                            }
-                        });
-                    }
-                });
-            }
+      //    var query = 'UPDATE `user` SET isDeleted = 1 WHERE username = "' + username + '";'; 
+
+      //    db.query(query).then((result) => {
+      //      if (result != null) {
+      //        var query = 'UPDATE `post` SET isDeleted = 1 WHERE username = "' + oldPostQ.username + '";';
+
+      //        db.query(query).then((result) => {
+      //          if (result != null) {
+      //            var query = 'UPDATE `comment` SET isDeleted = 1 WHERE username = "' + oldPostQ.username + '";';
+
+      //            db.query(query).then((result) => {
+      //              res.send(true); 
+      //            })
+      //          }
+      //        });
+      //      }
+      //    });
+      //  }
+      //});
+      
+      var query = 'DELETE from `user` WHERE username = "' + username + '";';
+
+      db.query(query).then((result) => {
+        Logger.logAction('User deleted account', username);
+
+        var query = 'DELETE from `post` WHERE username = "' + username + '";';
+
+        db.query(query).then((result) => {
+          var query = 'DELETE from `comment` WHERE username = "' + username + '";';
+          
+          db.query(query).then((result) => {
+            res.send(true);
+          })
         });
+      });
+      
+      // db.deleteOne(Users, query, function (result) {
+      //     if (result) {
+
+      //         query = {
+      //             username: username
+      //         }
+
+      //         db.deleteMany(Posts, query, function (result) {
+      //             if (result) {
+      //                 db.deleteMany(Comments, query, function (result) {
+      //                     if (result) {
+      //                         res.send(true);
+      //                     }
+      //                 });
+      //             }
+      //         });
+      //     }
+      // });
     },
 
     followAccount: function (req, res) {
@@ -344,33 +397,17 @@ const profileController = {
 
         console.log(toBeFollowed+" "+sessionname);
 
-        var query = {
-            username: toBeFollowed
-        }
+        var query = 'SELECT followers from `user` where username = "' + toBeFollowed + '";';
 
-        var projection = 'userID username followers';
+        db.query(query).then((result) => {
+          followers = result[0].followers;
+          followers++;
 
-        db.findOne(Users, query, projection, function (result) {
-            if (result != null) {
-                var oldInfo = {
-                    username: result.username,
-                    followers: result.followers
-                }
+          var query = 'UPDATE `user` SET followers = ' + followers + ' WHERE username = "' + toBeFollowed + '";';
 
-                var newFollowers = clone(result.followers);
-                newFollowers.push(sessionID);
-
-                var newInfo = {
-                    username: result.username,
-                    followers: newFollowers
-                }
-
-                db.updateOne(Users, oldInfo, newInfo, function (result) {
-                    if (result) {
-                        res.send(true);
-                    }
-                });
-            }
+          db.query(query).then((result) => {
+            res.send(true);
+          });
         });
     },
 
@@ -378,16 +415,12 @@ const profileController = {
         var username = req.params.username;
         console.log(username);
 
-        var query = {
-            username: username
-        }
+        var query = 'SELECT username followers from `user` where username = "' + username + '";';
 
-        var projection = 'username followers';
-
-        db.findOne(Users, query, projection, function (result) {
-            if (result != null) {
-                res.send(result.followers);
-            }
+        db.query(query).then((result) => {
+          if (result != null) {
+            res.send(result[0].followers);
+         }
         });
     }
 }

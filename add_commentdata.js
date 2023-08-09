@@ -1,79 +1,70 @@
-const db = require ('./models/db.js');
-const Comment = require ('./models/CommentModel.js');
+const db = require ('./models/mysqldb.js');
 
-db.connect();
+async function addData() {
+	var comment = {
+		commentID: '1000100411',
+		commenterID: 1000,
+		postID: '10041',
+		username: 'migsbb',
+		content: 'lol', 
+		isDeleted: 0
+	};
+	
+	var query = "INSERT INTO `comment` (commentID, commenterID, postID, username, content, isDeleted) values ('" +  comment.commentID + "', '" +  comment.commenterID + "', '" +  comment.postID + "', '" +  comment.username + "', '" +  comment.content + "', '" +  comment.isDeleted + "');";
+		
+	await db.query(query)
+	
+	var comment = {
+		commentID: '1002100311',
+		commenterID: 1002,
+		postID: '10031',
+		username: 'iceice',
+		content: 'hey thats pretty nice', 
+		isDeleted: 0
+	};
+	
+	var query = "INSERT INTO `comment` (commentID, commenterID, postID, username, content, isDeleted) values ('" +  comment.commentID + "', '" +  comment.commenterID + "', '" +  comment.postID + "', '" +  comment.username + "', '" +  comment.content + "', '" +  comment.isDeleted + "');";
+		
+	await db.query(query)
+	
+	var comment = {
+		commentID: '1005100411',
+		commenterID: 1005,
+		postID: '10041',
+		username: 'dmitrilover',
+		content: 'Looks like Dmitri', 
+		isDeleted: 0
+	};
+	
+	var query = "INSERT INTO `comment` (commentID, commenterID, postID, username, content, isDeleted) values ('" +  comment.commentID + "', '" +  comment.commenterID + "', '" +  comment.postID + "', '" +  comment.username + "', '" +  comment.content + "', '" +  comment.isDeleted + "');";
+		
+	await db.query(query)
+	
+	var comment = {
+		commentID: '1005100412',
+		commenterID: 1005,
+		postID: '10041',
+		username: 'dmitrilover',
+		content: 'Wait no', 
+		isDeleted: 0
+	};
+	
+	var query = "INSERT INTO `comment` (commentID, commenterID, postID, username, content, isDeleted) values ('" +  comment.commentID + "', '" +  comment.commenterID + "', '" +  comment.postID + "', '" +  comment.username + "', '" +  comment.content + "', '" +  comment.isDeleted + "');";
+		
+	await db.query(query)
+	
+	var comment = {
+		commentID: '1005100413',
+		commenterID: 1005,
+		postID: '10041',
+		username: 'dmitrilover',
+		content: 'But maybe', 
+		isDeleted: 0
+	};
+	
+	var query = "INSERT INTO `comment` (commentID, commenterID, postID, username, content, isDeleted) values ('" +  comment.commentID + "', '" +  comment.commenterID + "', '" +  comment.postID + "', '" +  comment.username + "', '" +  comment.content + "', '" +  comment.isDeleted + "');";
+		
+	await db.query(query)
+}
 
-var comment = {
-	commentID: '1000100411',
-	commenterID: 1000,
-	commentNum: 1,
-	postID: '10041',
-	username: 'migsbb',
-	content: 'lol'
-};
-
-db.insertOne(Comment, comment, function(result) {
-	if (result != false) {
-		console.log("Added" + comment.username);
-	}
-});
-
-var comment = {
-	commentID: '1002100311',
-	commenterID: 1002,
-	commentNum: 1,
-	postID: '10031',
-	username: 'iceice',
-	content: 'hey thats pretty nice'
-};
-
-db.insertOne(Comment, comment, function(result) {
-	if (result != false) {
-		console.log("Added" + comment.username);
-	}
-});
-
-var comment = {
-	commentID: '1005100411',
-	commenterID: 1005,
-	commentNum: 1,
-	postID: '10041',
-	username: 'dmitrilover',
-	content: 'Looks like Dmitri'
-};
-
-db.insertOne(Comment, comment, function(result) {
-	if (result != false) {
-		console.log("Added" + comment.username);
-	}
-});
-
-var comment = {
-	commentID: '1005100412',
-	commenterID: 1005,
-	commentNum: 2,
-	postID: '10041',
-	username: 'dmitrilover',
-	content: 'Wait no'
-};
-
-db.insertOne(Comment, comment, function(result) {
-	if (result != false) {
-		console.log("Added" + comment.username);
-	}
-});
-
-var comment = {
-	commentID: '1005100413',
-	commenterID: 1005,
-	commentNum: 3,
-	postID: '10041',
-	username: 'dmitrilover',
-	content: 'But maybe'
-};
-
-db.insertOne(Comment, comment, function(result) {
-	if (result != false) {
-		console.log("Added" + comment.username);
-	}
-});
+addData();
