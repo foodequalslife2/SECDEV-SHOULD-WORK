@@ -14,31 +14,36 @@ const profileController = {
       var username = req.params.username;
       var query = 'SELECT * from `user` WHERE username = "' + username + '";';
 
-      db.query(query).then((result) => {
-        if(typeof result[0] !== 'undefined') {
-          var details = {
-              userID: result[0].userID,
-              sessionname: req.session.username,
-              sessionID: req.session.userID,
-              firstName: result[0].firstName,
-              lastName: result[0].lastName,
-              username: result[0].username,
-              phone: result[0].phone,
-              followers: result[0].followers,
-              isDeleted: result[0].isDeleted
-          };
+      db.query(query)
+        .then((result) => {
+            if(result.length > 0 || result != null || typeof result[0] !== 'undefined') {
+              var details = {
+                  userID: result[0].userID,
+                  sessionname: req.session.username,
+                  sessionID: req.session.userID,
+                  firstName: result[0].firstName,
+                  lastName: result[0].lastName,
+                  username: result[0].username,
+                  phone: result[0].phone,
+                  followers: result[0].followers,
+                  isDeleted: result[0].isDeleted
+              };
 
-          req.session.referral = '/profile/'+details.sessionname;
+              req.session.referral = '/profile/'+details.sessionname;
 
-          console.log(req.session.referral);
-          
-          res.render('profile', details);
-        }
-        else {
-            var error = 'Cannot find profile';
-            res.render('error', {error});
-        }
-      });
+              console.log(req.session.referral);
+              
+              res.render('profile', details);
+            } else {
+                var msg = {error: 'Profile cannot be found.'}
+                res.render('error', msg);
+            }
+          })
+          .catch((error) => {
+              if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+              else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+              res.render('error', msg);
+          });
     },
 
     getProfileAvatar: function (req, res) {
@@ -46,9 +51,20 @@ const profileController = {
 
       var query = 'SELECT username, avatar from `user` WHERE username = "' + username + '";';
       
-      db.query(query).then((result) => { 
-        res.send(result[0]);
-      });
+      db.query(query)
+        .then((result) => { 
+            if(result.length > 0 || typeof result[0] !== 'undefined') { 
+                res.send(result[0]); 
+            } else { 
+                var msg = 'Profile cannot be found.';
+                res.render('error', {msg});
+            }
+          })
+          .catch((error) => {
+              if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+              else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+              res.render('error', msg);
+          });
     },
 
     getProfilePosts: function (req, res) {
@@ -56,10 +72,21 @@ const profileController = {
 
         var query = 'SELECT * from `post` WHERE username = "' + username + '";';
 
-        db.query(query).then((result) => {
-          var trim = result[0];
-          res.render('profile', {trim})
-        });
+        db.query(query)
+          .then((result) => {
+              if(result.length > 0 || result != null || typeof result[0] !== 'undefined') {
+                  var trim = result[0];
+                  res.render('profile', {trim})
+              } else { 
+                var msg = 'Profile cannot be found.';
+                res.render('error', {msg});
+              }
+          })
+          .catch((error) => {
+              if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+              else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+              res.render('error', msg);
+          });
     },
 
     getUploadPage: function (req, res) {
@@ -67,23 +94,28 @@ const profileController = {
 
       var query = 'SELECT username, avatar from `user` WHERE username = "' + username + '";';
       
-      db.query(query).then((result) => { 
-        if (result != null) {
-          var details = {
-              username: result[0].username,
-              avatar: result[0].avatar
-          };
+      db.query(query)
+        .then((result) => { 
+            if (result.length > 0 || result != null || typeof result[0] !== 'undefined') {
+              var details = {
+                  username: result[0].username,
+                  avatar: result[0].avatar
+              };
 
-          req.session.referral = '/uploadPage/'+query.username;
+              req.session.referral = '/uploadPage/'+query.username;
 
-          res.render('uploadPage', details)
-        }
-        else {
-            // var error = 'Cannot find profile';
-            // res.render('error', {error});
-            res.render('error'); 
-        }
-      });
+              res.render('uploadPage', details)
+            } else { 
+                var msg = 'Profile cannot be found.';
+                res.render('error', {msg});
+            }
+        })
+        .catch((error) => {
+            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+            res.render('error', msg);
+        });
+
     },
 
     upload: async function (req, res) {
@@ -111,21 +143,28 @@ const profileController = {
 
           var query = 'UPDATE `user` SET avatar = "' + avatarPath + '" WHERE username = "' + username + '";';
 
-          db.query(query).then((result) => {
-            if (result != null) {
-              var username = req.session.username;
-              
-              Logger.logAction("User changed avatar photo at path " + avatarPath, username);
-
-              res.redirect('/profile/'+username);
-            }
-          });
+          db.query(query)
+            .then((result) => {
+              if (result.length > 0 || result != null || typeof result[0] !== 'undefined') {
+                var username = req.session.username;  
+                Logger.logAction("User changed avatar photo at path " + avatarPath, username);
+                res.redirect('/profile/'+username);
+              } else {
+                  var msg = 'Profile cannot be found.';
+                  res.render('error', {msg});
+              }
+            })
+            .catch((error) => {
+                if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+                else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+                res.render('error', msg);
+            });
           
         } catch (err) {
             console.log(err);
-            res.status(500).json({
-                message: err
-            });
+            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+            res.render('error', msg);
         }
     },
 
@@ -134,25 +173,31 @@ const profileController = {
 
       var query = 'SELECT username, avatar from `user` WHERE username = "' + username + '";';
 
-      db.query(query).then((result) => {
-        if (result != null) {
-          var details = {
-              firstName: result[0].firstName,
-              lastName: result[0].lastName,
-              username: result[0].username,
-              phone: result[0].phone
-          };
+      db.query(query)
+        .then((result) => {
+            if (result.length > 0 || result != null || typeof result[0] !== 'undefined') {
+              var details = {
+                  firstName: result[0].firstName,
+                  lastName: result[0].lastName,
+                  username: result[0].username,
+                  phone: result[0].phone
+              };
 
-          req.session.referral = '/editprofile/'+query.username;
+              req.session.referral = '/editprofile/'+query.username;
 
-          res.render('editprofile', details)
-        }
-        else {
-            // var error = 'Cannot find profile';
-            // res.render('error', error);
-            res.render('error'); 
-        }
-      });
+              res.render('editprofile', details)
+            }
+            else {
+                var msg = 'Profile cannot be found.';
+                res.render('error', {msg});
+            }
+        })
+        .catch((error) => {
+            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+            res.render('error', msg);
+        });
+        
     },
 
     postProfileInfo: function (req, res) {
@@ -208,27 +253,44 @@ const profileController = {
             var query = 'UPDATE `user` SET username = "' + newInfo.username + '", firstName = "' + newInfo.firstName + '", lastName = "' + newInfo.lastName + '", phone = ' + newInfo.phone + ' WHERE username = "' + hiddenInfo.username +'";';
             
 
-            db.query(query).then((result) => {
-              if (result != null) {
-                Logger.logAction('User updated profile information to ' + newInfo.username + ', ' + newInfo.firstName + ', ' + newInfo.lastName + ', ' + newInfo.phone, hiddenInfo.username);
+            db.query(query)
+              .then((result) => {
+                  if (result != null) {
+                    Logger.logAction('User updated profile information to ' + newInfo.username + ', ' + newInfo.firstName + ', ' + newInfo.lastName + ', ' + newInfo.phone, hiddenInfo.username);
 
-                var oldPostQ = {
-                  username: hiddenInfo.username
-                }
-                var newPostQ = {
-                  username: newname
-                }
+                    var oldPostQ = {
+                      username: hiddenInfo.username
+                    }
+                    var newPostQ = {
+                      username: newname
+                    }
 
-                var query = 'UPDATE `comment` SET username = "' + newPostQ.username + '" WHERE username = "' + oldPostQ.username + '";';
-                
-                db.query(query).then((result) => {
-                  var query = 'UPDATE `post` SET username = "' + newPostQ.username + '" WHERE username = "' + oldPostQ.username + '";';
+                    var query = 'UPDATE `comment` SET username = "' + newPostQ.username + '" WHERE username = "' + oldPostQ.username + '";';
+                    
+                    db.query(query)
+                    .then((result) => {
+                        var query = 'UPDATE `post` SET username = "' + newPostQ.username + '" WHERE username = "' + oldPostQ.username + '";';
 
-                  db.query(query).then((result) => {
-                    res.redirect('/profile/' + newname);
-                  })
-                });
-              }
+                        db.query(query)
+                        .then((result) => {
+                            res.redirect('/profile/' + newname);
+                        })
+                        .catch((error) => {
+                            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+                            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+                            res.render('error', msg);
+                        });
+                    })
+                    .catch((error) => {
+                        if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+                        else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+                        res.render('error', msg);
+                    });
+                  }
+                  else{
+                    var msg = {error: 'Oops! Something went wrong. Please try again later.' }; 
+                    res.render('error', msg)
+                  }
             });
           }
         });
@@ -239,24 +301,31 @@ const profileController = {
 
         var query = 'SELECT username, password from `user` WHERE username = "' + username + '";';
 
-        db.query(query).then((result) => {
-          if (result != null) {
-            var details = {
-                username: result[0].username,
-                password: result[0].password
-            };
-
-            req.session.referral = '/changepassword/'+query.username;
-
-            res.render('changepass', details);
-          }
-          else {
-              // var error = 'Cannot find profile';
-              // res.render('error', error);
-              res.render('error'); 
-          }
-        });
+        db.query(query)
+          .then((result) => {
+              if (result.length > 0 || result != null || typeof result[0] !== 'undefined') {
+                var details = {
+                    username: result[0].username,
+                    password: result[0].password
+                };
+          
+                req.session.referral = '/changepassword/'+query.username;
+          
+                res.render('changepass', details);
+              }
+              else {
+                  var msg = 'Profile cannot be found.';
+                  res.render('error', {msg});
+              }
+          })
+          .catch((error) => {
+              if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+              else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+              res.render('error', msg);
+          });
     },
+
+      
 
     postChangePassword: function (req, res) {
       var curPassword = req.body.curPassword;
@@ -273,41 +342,54 @@ const profileController = {
     
       var query = 'SELECT userID, username, password from `user` WHERE username = "' + hiddenInfo.username + '" AND password = "' + hiddenInfo.password + '";';
 
-      db.query(query).then((result) => {
-        if (result && result[0].username == username) {
-          bcrypt.compare(curPassword, result[0].password, function (err, equal) {
-            if (equal) {
-              var passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
-              if (!passwordRegex.test(newInfo.password)) {
-                res.redirect('error?wrongPassword=true');
+      db.query(query)
+        .then((result) => {
+          if (result && result[0].username == username) {
+            bcrypt.compare(curPassword, result[0].password, function (err, equal) {
+              if (equal) {
+                var passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+                if (!passwordRegex.test(newInfo.password)) {
+                  res.redirect('error?wrongPassword=true');
+                } else {
+                  bcrypt.hash(newInfo.password, saltRounds, function (err, hash) {
+                    if (hash != null) {
+                      newInfo.password = hash;
+                      
+                      var query = 'UPDATE `user` SET password = "' + newInfo.password + '" WHERE username = "' + username + '";';
+
+                      db.query(query)
+                      .then((result) => {
+                          if (result != null) {
+                            Logger.logAction('User updated password', newInfo.username);
+
+                            var username = newInfo.username;
+                            res.redirect('/profile/' + username);
+                          }
+                      })
+                      .catch((error) => {
+                          if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+                          else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+                          res.render('error', msg);
+                      });
+                    } else {
+                      var error = 'Something went wrong in storing password';
+                      res.render('error', error);
+                    }
+                  });
+                }
               } else {
-                bcrypt.hash(newInfo.password, saltRounds, function (err, hash) {
-                  if (hash != null) {
-                    newInfo.password = hash;
-                    
-                    var query = 'UPDATE `user` SET password = "' + newInfo.password + '" WHERE username = "' + username + '";';
-
-                    db.query(query).then((result) => {
-                      if (result != null) {
-                        Logger.logAction('User updated password', newInfo.username);
-
-                        var username = newInfo.username;
-                        res.redirect('/profile/' + username);
-                      }
-                    });
-                  } else {
-                    var error = 'Something went wrong in storing password';
-                    res.render('error', error);
-                  }
-                });
+                var error = 'Wrong password entered.';
+                res.render('error', error);
               }
-            } else {
-              var error = 'Wrong password entered.';
-              res.render('error', error);
-            }
-          });
-        }
+            });
+          }
+      })
+      .catch((error) => {
+          if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+          else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+          res.render('error', msg);
       });
+
     },
 
     deleteAccount: function (req, res) {
@@ -356,18 +438,36 @@ const profileController = {
       
       var query = 'DELETE from `user` WHERE username = "' + username + '";';
 
-      db.query(query).then((result) => {
-        Logger.logAction('User deleted account', username);
+      db.query(query)
+      .then((result) => {
+          Logger.logAction('User deleted account', username);
 
-        var query = 'DELETE from `post` WHERE username = "' + username + '";';
+          var query = 'DELETE from `post` WHERE username = "' + username + '";';
 
-        db.query(query).then((result) => {
-          var query = 'DELETE from `comment` WHERE username = "' + username + '";';
-          
-          db.query(query).then((result) => {
-            res.send(true);
+          db.query(query)
+          .then((result) => {
+              var query = 'DELETE from `comment` WHERE username = "' + username + '";';
+              
+              db.query(query)
+              .then((result) => {
+                  res.send(true);
+              })
+              .catch((error) => {
+                  if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+                  else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+                  res.render('error', msg);
+              });
           })
-        });
+          .catch((error) => {
+              if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+              else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+              res.render('error', msg);
+          });
+      })
+      .catch((error) => {
+          if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+          else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+          res.render('error', msg);
       });
       
       // db.deleteOne(Users, query, function (result) {
@@ -399,15 +499,27 @@ const profileController = {
 
         var query = 'SELECT followers from `user` where username = "' + toBeFollowed + '";';
 
-        db.query(query).then((result) => {
-          followers = result[0].followers;
-          followers++;
+        db.query(query)
+        .then((result) => {
+            followers = result[0].followers;
+            followers++;
 
-          var query = 'UPDATE `user` SET followers = ' + followers + ' WHERE username = "' + toBeFollowed + '";';
+            var query = 'UPDATE `user` SET followers = ' + followers + ' WHERE username = "' + toBeFollowed + '";';
 
-          db.query(query).then((result) => {
-            res.send(true);
-          });
+            db.query(query)
+              .then((result) => {
+                res.send(true);
+            })
+            .catch((error) => {
+                if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+                else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+                res.render('error', msg);
+            });
+        })
+        .catch((error) => {
+            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+            res.render('error', msg);
         });
     },
 
@@ -417,13 +529,24 @@ const profileController = {
 
         var query = 'SELECT username followers from `user` where username = "' + username + '";';
 
-        db.query(query).then((result) => {
-          if (result != null) {
-            res.send(result[0].followers);
-         }
+        db.query(query)
+        .then((result) => {
+            if (result.length > 0 || result != null || typeof result[0] !== 'undefined') {
+              res.send(result[0].followers);
+            }
+            else {
+                var msg = 'Profile cannot be found.';
+                res.render('error', {msg});
+            }
+        })
+        .catch((error) => {
+            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+            res.render('error', msg);
         });
     }
 }
+
 
 /*
     exports the object `profileController` (defined above)

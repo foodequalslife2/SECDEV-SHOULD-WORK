@@ -9,7 +9,8 @@ const adminController = {
 
         var query = 'SELECT * from `user` WHERE username = "' + username + '";';
         
-        db.query(query).then((result) => {
+        db.query(query)
+        .then((result) => {
             if (result[0].userID == 1001) {
                 var details = {
                     adminmsg: "Hello Admin"
@@ -21,9 +22,13 @@ const adminController = {
                 var details = {
                     error: "You do not have access to this page."
                 };
-
                 res.render('error', details);
             }
+        })
+        .catch((error) => {
+            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+            res.render('error', msg);
         });
     }
 }

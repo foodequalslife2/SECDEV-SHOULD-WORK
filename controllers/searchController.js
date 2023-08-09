@@ -9,15 +9,22 @@ const clone = require('clone');
 
 const searchController = {
 	getSearch: function (req, res) {
-		var sessionname = req.session.username;
+		try{
+			var sessionname = req.session.username;
 
-		details = {
-			sessionname: sessionname,
+			details = {
+				sessionname: sessionname,
+			}
+
+			req.session.referral = '/sessionname';
+
+			res.render('search', details);
 		}
-
-		req.session.referral = '/sessionname';
-
-		res.render('search', details);
+		catch(error) {
+            if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+            res.render('error', msg);
+        }
 	},
 
 	getResults: function (req, res) {
@@ -30,8 +37,14 @@ const searchController = {
 		if (type == 'post') {
 			var query = 'SELECT * from `post` WHERE description = "' + searchQuery + '" OR username = "' + searchQuery + '" AND isDeleted = 0;';
 
-			db.query(query).then((results) => {
+			db.query(query)
+			.then((results) => {
 				res.send(results);
+			})
+			.catch((error) => {
+				if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+				else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+				res.render('error', msg);
 			});
 		}
 
@@ -39,17 +52,30 @@ const searchController = {
 		if (type == 'user') {
 			var query = 'SELECT * from `user` WHERE username = "' + searchQuery + '" AND isDeleted = 0;';
 
-			db.query(query).then((results) => {
+			db.query(query)
+			.then((results) => {
 				res.send(results);
+			})
+			.catch((error) => {
+				if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+				else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+				res.render('error', msg);
 			});
+
 		}
 
 		// Search Comments
 		if (type == 'comment') {
 			var query = 'SELECT * from `comment` WHERE username = "' + searchQuery + '" OR content = "' + searchQuery + '" AND isDeleted = 0;';
 
-			db.query(query).then((results) => {
+			db.query(query)
+			.then((results) => {
 				res.send(results);
+			})
+			.catch((error) => {
+				if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+				else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+				res.render('error', msg);
 			});
 		}
 
@@ -57,8 +83,14 @@ const searchController = {
 		if (type == 'tabs') {
 			var query = 'SELECT * from `tab` WHERE tabsName = "' + searchQuery + '" OR tabsInstrument = "' + searchQuery + '";';
 
-			db.query(query).then((results) => {
+			db.query(query)
+			.then((results) => {
 				res.send(results);
+			})
+			.catch((error) => {
+				if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+				else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+				res.render('error', msg);
 			});
 		}
 	}

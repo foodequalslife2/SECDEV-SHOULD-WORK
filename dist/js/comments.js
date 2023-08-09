@@ -195,7 +195,7 @@ function createCommentArea(postID, length) {
 
 function createOnClickEvent(icon, postID) {
 	icon.onclick = function() {
-		$.post('/postLike/'+postID, function (result) {
+		$.post('//'+postID, function (result) {
 			var numLikes = $('#likes-num').text();
 			if (result) {
 				numLikes++;

@@ -44,8 +44,14 @@ const signupController = {
     
             Logger.logAction("User signed up", user.username);
             
-            await db.query(query).then((result) => {
+            await db.query(query)
+            .then((result) => {
                 res.render('signup_success', {username: username});
+            })
+            .catch((error) => {
+                if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+                else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+                res.render('error', msg);
             });
         }
 
@@ -82,10 +88,10 @@ const signupController = {
                 });
     
             } catch (err) {
-                console.log(err);
-                res.status(500).json({
-                    message: err
-                });
+                if(result[0].userID == 1001) { var msg = {error: err.stack }; }
+                else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+                res.render('error', msg);
+
             }
         }
 
@@ -95,17 +101,29 @@ const signupController = {
     getCheckUsername: async (req, res) => {
         var username = req.query.username;
         var query = 'SELECT * from `user` WHERE username = "' + username + '";';
-        await db.query(query).then((result) => {
-            res.send(result);
-        });
+        await db.query(query)
+            .then((result) => {
+                res.send(result);
+            })
+            .catch((error) => {
+                if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+                else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+                res.render('error', msg);
+            });
     },
 
     getCheckPassword: async (req, res) => {
         var password = req.query.password;
         var query = 'SELECT * from `user` WHERE password = "' + password + '";';
-        await db.query(query).then((result) => {
-            res.send(result);
-        });
+        await db.query(query)
+            .then((result) => {
+                res.send(result);
+            })
+            .catch((error) => {
+                if(result[0].userID == 1001) { var msg = {error: error.stack }; }
+                else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+                res.render('error', msg);
+            });
     }
 }
 
