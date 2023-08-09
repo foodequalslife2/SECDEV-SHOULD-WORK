@@ -2,7 +2,7 @@ const express = require('express');
 const fileUpload = require('express-fileupload');
 const hbs = require('hbs');
 const routes = require('./routes/routes.js');
-const db = require('./models/db.js');
+const db = require('./models/mysqldb.js');
 const dotenv = require('dotenv');
 const session = require('express-session');
 const mongoose = require('mongoose');
@@ -44,7 +44,6 @@ app.use(express.static('dist'));
 
 app.use(fileUpload());
 
-db.connect();
 
 app.use(session({
 	resave: false,

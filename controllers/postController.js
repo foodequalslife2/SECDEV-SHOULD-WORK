@@ -9,17 +9,25 @@ const Logger = require('../controllers/logController.js');
 
 const postController = {
 	getFeed: function (req,res) {
-		var sessionname = req.session.username;
-		var feedname = req.params.username;
+		try{
+			var sessionname = req.session.username;
+			var feedname = req.params.username;
 
-		details = {
-			sessionname: sessionname,
-			feedname: feedname
+			details = {
+				sessionname: sessionname,
+				feedname: feedname
+			}
+
+			req.session.referral = '/feed';
+
+			res.render('feed', details);
 		}
-
-		req.session.referral = '/feed';
-
-		res.render('feed', details);
+		catch(error) {
+            if(req.session.username == 'admin') { var msg = {error: error.stack }; }
+            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+            res.render('error', msg);
+        }
+		
 	},
 
 	// THIS ONE DOESN'T WORK but it's not broken either 
@@ -34,26 +42,37 @@ const postController = {
 
 		var query = 'SELECT * from `user` WHERE username = "' + feedname + '";';
 
-		db.query(query).then((result) => {
-			if (result != null) {
-				req.session.referral = '/viewposts/'+feedname;
+		db.query(query)
+			.then((result) => {
+				if (result.length > 0 || result != null || typeof result[0] !== 'undefined') {
+					req.session.referral = '/viewposts/'+feedname;
 
-				res.render('viewposts', details);
-			}
-			else{
-				// var error = 'Cannot find profile';
-                // res.render('error', error);
-                res.render('error');
-			}
-		});
+					res.render('viewposts', details);
+				}
+				else{
+					var msg = 'Profile cannot be found.';
+					res.render('error', {msg});
+				}
+			})
+			.catch((error) => {
+				if(req.session.username == 'admin') { var msg = {error: error.stack }; }
+				else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+				res.render('error', msg);
+			});
 	},
 
 	getNormalPosts: function (req, res) {
 		var query = 'SELECT * from `post`'
 		
-		db.query(query).then((result) => {
+		db.query(query)
+		.then((result) => {
 			res.send(result);
-		});
+		})
+		.catch((error) => {
+            if(req.session.username == 'admin') { var msg = {error: error.stack }; }
+            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+            res.render('error', msg);
+        });
 	},
 
 	uploadPost: async function (req, res) {
@@ -130,19 +149,25 @@ const postController = {
 
 			Logger.logAction('Posted ' + post.postID , post.username);
 
-			db.query(query).then((result) => {
-				if (result) {
-					console.log('Post successfully added: '+result);
+			db.query(query)
+				.then((result) => {
+					if (result) {
+						console.log('Post successfully added: '+result);
 
-					res.redirect('/comment/'+post.postID);
-				}
-			});
+						res.redirect('/comment/'+post.postID);
+					}
+				
+				})
+				.catch((error) => {
+					if(req.session.username == 'admin') { var msg = {error: error.stack }; }
+					else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+					res.render('error', msg);
+				});
 
-        } catch (err) {
-            console.log(err);
-            res.status(500).json({
-                message: err
-            });
+        } catch (error) {
+            if(req.session.username == 'admin') { var msg = {error: error.stack }; }
+            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+            res.render('error', msg);
         }
     },
 
@@ -151,9 +176,15 @@ const postController = {
 
 		var query = 'SELECT * from `post` WHERE username = "' + username + '";';
 
-		db.query(query).then((result) => {
+		db.query(query)
+		.then((result) => {
 			res.send(result);
-		});
+		})
+		.catch((error) => {
+            if(req.session.username == 'admin') { var msg = {error: error.stack }; }
+            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+            res.render('error', msg);
+        });
 	},
 
 	getMakePostPage: function (req, res) {
@@ -162,7 +193,8 @@ const postController = {
 
 		var query = 'SELECT * from `user` WHERE username = "' + sessionname + '";';
 
-		db.query(query).then((result) => {
+		db.query(query)
+		.then((result) => {
 			if (result != null) {
 				details = {
 					userID: result[0].userID,
@@ -173,8 +205,18 @@ const postController = {
 				req.session.referral = '/makePost';
 
 				res.render('makePost', details);
+			} else {
+				if(req.session.username == 'admin') { var msg = {error: error.stack }; }
+				else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+				res.render('error', msg);
 			}
-		});
+
+		})
+		.catch((error) => {
+            if(req.session.username == 'admin') { var msg = {error: error.stack }; }
+            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+            res.render('error', msg);
+        });
 	},
 
 	postLike: function (req, res) {
@@ -246,11 +288,22 @@ const postController = {
 
 		Logger.logAction('Deleted post ' + postID, username);
 
-		db.query(query).then((result) => {
+		db.query(query)
+		.then((result) => {
 			if (result != null) {
 				res.send(true);
 			}
-		});
+			else {
+				if(req.session.username == 'admin') { var msg = {error: error.stack }; }
+				else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+				res.render('error', msg);
+			}
+		})
+		.catch((error) => {
+            if(req.session.username == 'admin') { var msg = {error: error.stack }; }
+            else { var msg = {error: 'Oops! Something went wrong. Please try again later.' }; }
+            res.render('error', msg);
+        });
 
 		// db.deleteOne(Posts, query, function (result) {
 		// 	if (result) {

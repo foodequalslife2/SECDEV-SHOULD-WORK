@@ -44,8 +44,13 @@ const signupController = {
     
             Logger.logAction("User signed up", user.username);
             
-            await db.query(query).then((result) => {
+            await db.query(query)
+            .then((result) => {
                 res.render('signup_success', {username: username});
+            })
+            .catch((error) => {
+                var msg = {error: 'Oops! Something went wrong. Please try again later.' }; 
+                res.render('error', msg);
             });
         }
 
@@ -82,10 +87,8 @@ const signupController = {
                 });
     
             } catch (err) {
-                console.log(err);
-                res.status(500).json({
-                    message: err
-                });
+                var msg = {error: 'Oops! Something went wrong. Please try again later.' }; 
+                res.render('error', msg);
             }
         }
 
@@ -95,17 +98,27 @@ const signupController = {
     getCheckUsername: async (req, res) => {
         var username = req.query.username;
         var query = 'SELECT * from `user` WHERE username = "' + username + '";';
-        await db.query(query).then((result) => {
-            res.send(result);
-        });
+        await db.query(query)
+            .then((result) => {
+                res.send(result);
+            })
+            .catch((error) => {
+                var msg = {error: 'Oops! Something went wrong. Please try again later.' }; 
+                res.render('error', msg);
+            });
     },
 
     getCheckPassword: async (req, res) => {
         var password = req.query.password;
         var query = 'SELECT * from `user` WHERE password = "' + password + '";';
-        await db.query(query).then((result) => {
-            res.send(result);
-        });
+        await db.query(query)
+            .then((result) => {
+                res.send(result);
+            })
+            .catch((error) => {
+                var msg = {error: 'Oops! Something went wrong. Please try again later.' }; 
+                res.render('error', msg);
+            });
     }
 }
 
